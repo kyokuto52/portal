@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#dcefeb">
+  <meta name="description" content="一座漂浮在浅海上的小小应用群岛。">
+  <title>潮汐之间 — 我的应用群岛</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #183e49;
+      --muted: #64818a;
+      --sea: #e2f3f8;
+      --deep: #91d3e3;
+      --foam: #f7fffc;
+      --serif: "Iowan Old Style", "Baskerville", "Palatino Linotype", "Noto Serif SC", serif;
+      font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      min-height: 100svh;
+      overflow-x: hidden;
+      color: var(--ink);
+      background: radial-gradient(ellipse at 50% 18%, #f4fbfa 0%, #eaf6f5 38%, #e0f1f5 76%, #d5ebf1 100%);
+    }
+    .scene { position: relative; min-height: 100svh; isolation: isolate; overflow: hidden; }
+    .grain { position: absolute; inset: 0; z-index: -1; opacity: .15; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E"); }
+    .topline { position: relative; z-index: 4; width: min(1180px, calc(100% - 64px)); margin: 0 auto; padding-top: 30px; display: flex; align-items: center; justify-content: space-between; color: #50727b; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-mark { width: 22px; height: 22px; border: 1px solid #6aa9a3; border-radius: 50%; display: grid; place-items: center; font-family: var(--serif); font-size: 16px; line-height: 1; color: #528f8b; }
+    .coordinates { opacity: .78; }
+    main { position: relative; z-index: 3; width: min(1180px, calc(100% - 64px)); margin: 0 auto; padding-top: clamp(54px, 9vh, 112px); text-align: center; }
+    .eyebrow { margin: 0 0 15px; color: #64928f; font-size: 11px; letter-spacing: .32em; text-transform: uppercase; }
+    h1 { margin: 0; font: 400 clamp(36px, 6vw, 70px)/1.12 var(--serif); letter-spacing: .045em; color: #204852; }
+    .intro { margin: 18px auto 0; max-width: 420px; color: #64818a; font-size: 14px; line-height: 1.9; letter-spacing: .08em; }
+    .islands { position: relative; z-index: 5; display: flex; justify-content: center; align-items: flex-start; gap: clamp(34px, 9vw, 126px); margin: clamp(46px, 8vh, 82px) auto 0; }
+    .island { --tilt: -3deg; position: relative; width: 196px; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; outline: none; -webkit-tap-highlight-color: transparent; }
+    .island:nth-child(2) { --tilt: 3deg; margin-top: 40px; }
+    .icon-wrap { position: relative; width: 146px; height: 146px; border-radius: 43px; display: grid; place-items: center; background: linear-gradient(145deg, rgba(255,255,255,.87), rgba(239,250,246,.68)); border: 1px solid rgba(255,255,255,.9); box-shadow: 0 19px 45px rgba(60,117,118,.13), inset 0 1px 0 rgba(255,255,255,.9); transform: rotate(var(--tilt)); transition: transform .45s cubic-bezier(.2,.8,.2,1), box-shadow .45s; }
+    .island:hover .icon-wrap, .island:focus-visible .icon-wrap { transform: rotate(0) translateY(-9px) scale(1.035); box-shadow: 0 28px 55px rgba(60,117,118,.22), inset 0 1px 0 white; }
+    .app-icon { width: 108px; height: 108px; overflow: visible; }
+    .halo { position: absolute; inset: -9px; border: 1px solid rgba(99,164,157,.19); border-radius: 50px; transform: rotate(calc(var(--tilt) * -1)); pointer-events: none; }
+    .label { margin-top: 24px; color: #244e56; font-family: var(--serif); font-size: 19px; letter-spacing: .055em; }
+    .caption { margin-top: 7px; color: #739097; font-size: 10px; letter-spacing: .19em; text-transform: uppercase; }
+    .visit { display: inline-flex; align-items: center; gap: 6px; margin-top: 13px; color: #5d9390; font-size: 11px; letter-spacing: .08em; opacity: .8; transition: opacity .2s, transform .2s; }
+    .island:hover .visit { opacity: 1; transform: translateX(3px); }
+    .arrow { font-size: 15px; line-height: 10px; }
+    .sea { position: absolute; z-index: 1; inset: 0; pointer-events: none; overflow: hidden; background: linear-gradient(145deg, #cceaf2 0%, #e2f4f7 46%, #d4eef3 100%); }
+    .water { position: absolute; inset: -25%; opacity: .64; background: linear-gradient(145deg, transparent 25%, rgba(255,255,255,.12) 52%, transparent 76%); }
+    .water::before, .water::after { content: ""; position: absolute; inset: -45%; background-repeat: repeat; background-size: 280px 112px; transform: rotate(-35deg); }
+    .water::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='112' viewBox='0 0 280 112'%3E%3Cpath d='M-140 55 C-105 26 -70 26 -35 55 S35 84 70 55 S140 26 175 55 S245 84 280 55 S350 26 385 55' fill='none' stroke='%23ffffff' stroke-opacity='.47' stroke-width='3'/%3E%3Cpath d='M-140 65 C-105 42 -70 42 -35 65 S35 88 70 65 S140 42 175 65 S245 88 280 65 S350 42 385 65' fill='none' stroke='%237fc6d8' stroke-opacity='.24' stroke-width='2'/%3E%3C/svg%3E"); animation: wave-flow-a 16s linear infinite; }
+    .water::after { opacity: .65; background-size: 360px 150px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='150' viewBox='0 0 360 150'%3E%3Cpath d='M-180 78 C-135 42 -90 42 -45 78 S45 114 90 78 S180 42 225 78 S315 114 360 78 S450 42 495 78' fill='none' stroke='%23ffffff' stroke-opacity='.31' stroke-width='5'/%3E%3C/svg%3E"); animation: wave-flow-b 23s linear infinite; }
+    @keyframes wave-flow-a { from { transform: rotate(-35deg) translateY(0); } to { transform: rotate(-35deg) translateY(112px); } }
+    @keyframes wave-flow-b { from { transform: rotate(-35deg) translateY(0); } to { transform: rotate(-35deg) translateY(-150px); } }
+    .wave-field { position: absolute; inset: 0; overflow: hidden; }
+    .wave-char { position: absolute; left: 0; top: 0; display: block; width: 32px; height: 38px; text-align: center; color: rgba(31,119,153,.4); font: 20px/38px "PingFang SC", "Microsoft YaHei", sans-serif; text-shadow: 0 1px 1px rgba(255,255,255,.75); will-change: transform; transform-origin: center; }
+    .foam { position: absolute; z-index: 2; width: 230px; height: 100px; pointer-events: none; opacity: 0; transform: translateY(0) scale(.5); }
+    .foam i { position: absolute; font: 16px monospace; font-style: normal; color: rgba(248,255,252,.9); text-shadow: 0 1px 7px rgba(255,255,255,.4); animation: scatter 1.05s ease-out both; }
+    @keyframes scatter { 0% { opacity: 0; transform: translate(0, 30px) scale(.45); } 18% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.2); } }
+    .footer { position: absolute; z-index: 4; bottom: 24px; left: 0; right: 0; text-align: center; color: rgba(46,103,111,.64); font-size: 10px; letter-spacing: .16em; }
+    .sun-glint { position: absolute; z-index: 0; width: 320px; height: 320px; right: 8%; top: 25%; background: radial-gradient(circle, rgba(255,255,255,.46), rgba(255,255,255,0) 68%); pointer-events: none; }
+    @media (max-width: 600px) {
+      .topline, main { width: calc(100% - 38px); }
+      .topline { padding-top: 21px; font-size: 9px; }
+      .coordinates { letter-spacing: .1em; }
+      main { padding-top: 9vh; }
+      .eyebrow { font-size: 9px; }
+      h1 { font-size: clamp(38px, 11vw, 54px); }
+      .intro { max-width: 300px; font-size: 12px; }
+      .islands { gap: clamp(18px, 7vw, 40px); margin-top: 54px; }
+      .island { width: min(42vw, 168px); }
+      .island:nth-child(2) { margin-top: 32px; }
+      .icon-wrap { width: min(36vw, 130px); height: min(36vw, 130px); border-radius: 35px; }
+      .app-icon { width: min(28vw, 98px); height: min(28vw, 98px); }
+      .halo { border-radius: 41px; }
+      .label { margin-top: 19px; font-size: 16px; }
+      .caption { font-size: 8px; letter-spacing: .12em; }
+      .visit { font-size: 10px; }
+      .wave-char { width: 27px; font-size: 17px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene">
+    <div class="grain" aria-hidden="true"></div><div class="sun-glint" aria-hidden="true"></div>
+    <header class="topline"><div class="brand"><span class="brand-mark">o</span><span>NOVA STUDIO</span></div><span class="coordinates">A SMALL ARCHIPELAGO · 2026</span></header>
+    <main>
+      <p class="eyebrow">A QUIET PLACE ON THE WEB</p>
+      <h1>Nova's Island</h1>
+      <p class="intro">沿着海浪，去往我的小小应用群岛。<br>每一座岛，都藏着一段不同的旅程。</p>
+      <nav class="islands" aria-label="应用群岛">
+        <a class="island" href="https://kyokuto52.github.io/PhotoGallery/" target="_blank" rel="noopener noreferrer" aria-label="打开 PhotoGallery 相册">
+          <span class="icon-wrap"><span class="halo"></span>
+            <svg class="app-icon" viewBox="0 0 120 120" role="img" aria-label="PhotoGallery 图标">
+              <rect x="12" y="17" width="96" height="86" rx="23" fill="#bfe5dc"/>
+              <circle cx="84" cy="39" r="10" fill="#f4c878"/>
+              <path d="M18 79 41 52a8 8 0 0 1 12 0l13 15 9-10a8 8 0 0 1 12 0l17 22v7a10 10 0 0 1-10 10H28a10 10 0 0 1-10-10z" fill="#5eaaa1"/>
+              <path d="m20 82 21-22 13 15 10-11 23 29H29a10 10 0 0 1-9-11" fill="#347a82"/>
+              <path d="M31 27h14" stroke="#f5fffa" stroke-width="4" stroke-linecap="round" opacity=".8"/>
+            </svg>
+          </span>
+          <span class="label">PhotoGallery</span><span class="caption">A place for memories</span><span class="visit">探索相册 <span class="arrow">↗</span></span>
+        </a>
+        <a class="island" href="https://kyokuto52.github.io/tarot-web/" target="_blank" rel="noopener noreferrer" aria-label="打开 Tarot Web 塔罗">
+          <span class="icon-wrap"><span class="halo"></span>
+            <svg class="app-icon" viewBox="0 0 120 120" role="img" aria-label="Tarot 图标">
+              <rect x="12" y="12" width="96" height="96" rx="29" fill="#d5d1ed"/>
+              <path d="M60 24c15 0 27 12 27 27v33a8 8 0 0 1-8 8H41a8 8 0 0 1-8-8V51c0-15 12-27 27-27" fill="#655c91"/>
+              <path d="M60 32v51" stroke="#e8d99e" stroke-width="2" opacity=".8"/>
+              <circle cx="60" cy="54" r="12" fill="#e8d99e"/>
+              <path d="m60 44 2.8 6.3 6.8.6-5.1 4.6 1.5 6.7-6-3.5-6 3.5 1.5-6.7-5.1-4.6 6.8-.6z" fill="#655c91"/>
+              <path d="M42 79c6-7 12-7 18 0 6-7 12-7 18 0" fill="none" stroke="#e8d99e" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="41" cy="40" r="2" fill="#fff6d7"/><circle cx="79" cy="40" r="2" fill="#fff6d7"/><path d="M48 26v-5m24 5v-5" stroke="#fff6d7" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span class="label">Tarot Web</span><span class="caption">A moment of reflection</span><span class="visit">翻开一张牌 <span class="arrow">↗</span></span>
+        </a>
+      </nav>
+    </main>
+    <div class="sea" aria-hidden="true"><div class="water"></div><div class="wave-field" id="waves"></div></div>
+    <div class="foam" id="foam" aria-hidden="true"></div>
+    <footer class="footer">MADE OF CURIOSITY &amp; A LITTLE SEA BREEZE</footer>
+  </div>
+  <script>
+    (() => {
+      const waveField = document.getElementById('waves');
+      const symbols = ['水', '海', '洋', '潮', '波', '浪', '涟', '漪', '汐', '涓', '沫', '淼', '渺', '澜', '溪', '涛'];
+      const glyphs = [];
+      const flow = { x: -.66, y: .75, speed: 72 };
+      const obstacles = [...document.querySelectorAll('.icon-wrap')];
+      let columns = 0, rows = 0, viewW = 0, viewH = 0;
+      const layoutWater = () => {
+        viewW = window.innerWidth;
+        viewH = window.innerHeight;
+        const gapX = viewW < 600 ? 47 : 59;
+        const gapY = viewW < 600 ? 67 : 76;
+        columns = Math.ceil(viewW / gapX) + 2;
+        rows = Math.ceil(viewH / gapY) + 2;
+        waveField.replaceChildren();
+        glyphs.length = 0;
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < columns; col++) {
+            const node = document.createElement('span');
+            node.className = 'wave-char';
+            node.textContent = symbols[(col * 7 + row * 5 + (col * row) % 11) % symbols.length];
+            const depth = row / Math.max(1, rows - 1);
+            node.style.color = `rgba(${42 + Math.round(depth * 8)}, ${132 + Math.round(depth * 17)}, ${163 + Math.round(depth * 19)}, ${0.21 + depth * 0.15})`;
+            waveField.appendChild(node);
+            const glyph = { node, x: col * gapX - 35, y: row * gapY - 34, col, row, depth, phase: (col * .83 + row * 1.37) % (Math.PI * 2), size: .82 + ((col * 13 + row * 7) % 7) * .055 };
+            node.style.transform = `translate3d(${glyph.x}px, ${glyph.y}px, 0) scale(${glyph.size})`;
+            glyph.splashUntil = 0;
+            glyph.vx = 0;
+            glyph.vy = 0;
+            glyph.lastX = glyph.x;
+            glyph.lastY = glyph.y;
+            glyphs.push(glyph);
+          }
+        }
+      };
+      layoutWater();
+      window.addEventListener('resize', layoutWater, { passive: true });
+      let previousFrame = 0;
+      let lastFrameTime = 0;
+      const wrap = (value, extent) => ((value % extent) + extent) % extent;
+      const animateWater = (now) => {
+        const t = now / 1000;
+        const dt = Math.min(.04, lastFrameTime ? (now - lastFrameTime) / 1000 : 0);
+        lastFrameTime = now;
+        const bounds = obstacles.map((el) => el.getBoundingClientRect());
+        for (const g of glyphs) {
+          let x, y, angle, opacity;
+          if (g.splashUntil > t) {
+            g.vy += 94 * dt;
+            x = g.lastX + g.vx * dt;
+            y = g.lastY + g.vy * dt;
+            g.vx *= .991;
+            g.vy *= .991;
+            g.lastX = x; g.lastY = y;
+            angle = g.vx * .065;
+            opacity = Math.min(1, (g.splashUntil - t) * 1.8);
+          } else {
+            const travelled = (t + g.phase * 7) * flow.speed;
+            const baseX = wrap(g.x + flow.x * travelled + viewW, viewW + 70) - 35;
+            const baseY = wrap(g.y + flow.y * travelled + viewH, viewH + 70) - 35;
+            const phase = (-flow.x * baseX - flow.y * baseY) * .021 - t * 1.05 + g.phase;
+            const crest = Math.sin(phase);
+            const tangent = Math.cos(phase);
+            const swell = crest * (10 + g.depth * 14) + Math.sin(phase * .48 + g.row) * 5;
+            x = baseX - flow.y * swell + Math.sin(phase + .8) * 2;
+            y = baseY + flow.x * swell + Math.cos(phase + .4) * 2;
+            angle = tangent * 15 + flow.y * 6;
+            opacity = .58 + (crest + 1) * .17;
+            const cx = x + 16, cy = y + 19;
+            for (let i = 0; i < bounds.length; i++) {
+              const b = bounds[i], pad = 9;
+              if (cx > b.left - pad && cx < b.right + pad && cy > b.top - pad && cy < b.bottom + pad) {
+                const ox = (b.left + b.right) / 2, oy = (b.top + b.bottom) / 2;
+                let nx = cx - ox, ny = cy - oy;
+                const length = Math.hypot(nx, ny) || 1;
+                nx /= length; ny /= length;
+                g.vx = flow.x * flow.speed + nx * (120 + Math.random() * 95);
+                g.vy = flow.y * flow.speed + ny * (120 + Math.random() * 95) - 35;
+                g.lastX = x; g.lastY = y; g.splashUntil = t + .85 + Math.random() * .55;
+                break;
+              }
+            }
+          }
+          g.node.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${angle}deg) scale(${g.size + (g.splashUntil > t ? .22 : 0)})`;
+          g.node.style.opacity = `${opacity}`;
+          if (g.splashUntil && g.splashUntil <= t) {
+            g.splashUntil = 0;
+            g.x = viewW + Math.random() * 140;
+            g.y = -50 + Math.random() * Math.max(60, viewH * .7);
+          }
+        }
+        previousFrame = requestAnimationFrame(animateWater);
+      };
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) previousFrame = requestAnimationFrame(animateWater);
+      const foam = document.getElementById('foam');
+      let timer;
+      document.querySelectorAll('.island').forEach((island) => {
+        const burst = () => {
+          const box = island.getBoundingClientRect();
+          foam.style.left = `${box.left + box.width / 2 - 115}px`;
+          foam.style.top = `${box.bottom - 72}px`;
+          foam.innerHTML = '';
+          for (let i = 0; i < 18; i++) {
+            const dot = document.createElement('i');
+            dot.textContent = symbols[i % symbols.length];
+            dot.style.left = `${70 + (Math.random() - .5) * 60}px`;
+            dot.style.top = `${28 + (Math.random() - .5) * 22}px`;
+            dot.style.setProperty('--dx', `${(Math.random() - .5) * 190}px`);
+            dot.style.setProperty('--dy', `${-20 - Math.random() * 90}px`);
+            dot.style.animationDelay = `${Math.random() * .15}s`;
+            foam.appendChild(dot);
+          }
+          foam.style.opacity = '1';
+          clearTimeout(timer);
+          timer = setTimeout(() => { foam.style.opacity = '0'; }, 1200);
+        };
+        island.addEventListener('mouseenter', burst);
+        island.addEventListener('focus', burst);
+        island.addEventListener('touchstart', burst, { passive: true });
+      });
+    })();
+  </script>
+</body>
+</html>
